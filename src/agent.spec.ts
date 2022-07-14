@@ -1,6 +1,6 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, createTransactionEvent } from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, createTransactionEvent } from "forta-agent";
 import { formatBytes32String } from "ethers/lib/utils";
-import agent from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { FUNCTION_ABI } from "./constants";
 
 const mockAccount1 = "0x6b51cb10119727a5e5ea3538074fb341f56b09cb";
@@ -15,7 +15,7 @@ describe("Monitor Access Control Role Changes", () => {
   const mockTxEvent = createTransactionEvent({} as any);
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction();
   });
 
   describe("handle transaction", () => {
@@ -31,7 +31,7 @@ describe("Monitor Access Control Role Changes", () => {
     it("returns a RoleGranted finding if grantRole or _setupRole function call is detected", async () => {
       const mockGrantRole = {
         name: "grantRole",
-        args: {role: mockRole1, account: mockAccount1, }, 
+        args: { role: mockRole1, account: mockAccount1 },
         address: mockContractAddress,
       };
       mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockGrantRole]);
@@ -45,11 +45,11 @@ describe("Monitor Access Control Role Changes", () => {
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
-              role: mockGrantRole.args.role,
-              account: mockGrantRole.args.account,
+            role: mockGrantRole.args.role,
+            account: mockGrantRole.args.account,
           },
           addresses: [mockContractAddress],
-        })
+        }),
       ]);
       expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
       expect(mockTxEvent.filterFunction).toBeCalledWith(FUNCTION_ABI);
@@ -58,7 +58,7 @@ describe("Monitor Access Control Role Changes", () => {
     it("returns a RoleRevoked finding if revokeRole or renounceRole function call is detected", async () => {
       const mockRevokeRole = {
         name: "revokeRole",
-        args: {role: mockRole1, account: mockAccount1, }, 
+        args: { role: mockRole1, account: mockAccount1 },
         address: mockContractAddress,
       };
       mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockRevokeRole]);
@@ -72,11 +72,11 @@ describe("Monitor Access Control Role Changes", () => {
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
-              role: mockRevokeRole.args.role,
-              account: mockRevokeRole.args.account,
+            role: mockRevokeRole.args.role,
+            account: mockRevokeRole.args.account,
           },
           addresses: [mockContractAddress],
-        })
+        }),
       ]);
       expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
       expect(mockTxEvent.filterFunction).toBeCalledWith(FUNCTION_ABI);
@@ -85,7 +85,7 @@ describe("Monitor Access Control Role Changes", () => {
     it("returns a AdminRoleChanged finding if _setRoleAdmin function call is detected", async () => {
       const mockSetRoleAdmin = {
         name: "_setRoleAdmin",
-        args: {role: mockRole1, previousAdminRole: mockRole2, newAdminRole: mockRole3, },
+        args: { role: mockRole1, previousAdminRole: mockRole2, newAdminRole: mockRole3 },
         address: mockContractAddress,
       };
 
@@ -100,12 +100,12 @@ describe("Monitor Access Control Role Changes", () => {
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
-              role: mockSetRoleAdmin.args.role,
-              previousAdminRole: mockSetRoleAdmin.args.previousAdminRole,
-              newAdminRole: mockSetRoleAdmin.args.newAdminRole,
+            role: mockSetRoleAdmin.args.role,
+            previousAdminRole: mockSetRoleAdmin.args.previousAdminRole,
+            newAdminRole: mockSetRoleAdmin.args.newAdminRole,
           },
           addresses: [mockContractAddress],
-        })
+        }),
       ]);
     });
   });
